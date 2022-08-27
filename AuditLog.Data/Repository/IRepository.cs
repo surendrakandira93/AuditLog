@@ -1,60 +1,152 @@
-﻿using System.Linq.Expressions;
+﻿using AuditLog.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace AuditLog.Data
 {
-    public interface IRepository<TEntity, TPrimaryKey> where TEntity : class
+    public interface IRepository<TEntity, TPrimaryKey> where TEntity : class, IEntity<TPrimaryKey>
     {
 
-        int Count();
-        int Count(Expression<Func<TEntity, bool>> predicate);
-        Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<int> CountAsync();
-        void Delete(TEntity entity);
-        void DeleteRange(List<TEntity> entities);
-        void Delete(TPrimaryKey id);
-        void Delete(Expression<Func<TEntity, bool>> predicate);
-        Task DeleteAsync(TPrimaryKey id);
-        Task DeleteAsync(Expression<Func<TEntity, bool>> predicate);
-        Task DeleteAsync(TEntity entity);
+        #region Select/Get/Query
+
+
+        IQueryable<TEntity> GetAll();
+
+
+        IQueryable<TEntity> GetAllIncluding(params Expression<Func<TEntity, object>>[] propertySelectors);
+
+        TEntity GetIncludingByIdAsyn(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null);
+
+
+        List<TEntity> GetAllList();
+
+        Task<List<TEntity>> GetAllListAsync();
+
+
+        List<TEntity> GetAllList(Expression<Func<TEntity, bool>> predicate);
+
+
+        Task<List<TEntity>> GetAllListAsync(Expression<Func<TEntity, bool>> predicate);
+
+
+        T Query<T>(Func<IQueryable<TEntity>, T> queryMethod);
+
+
+        TEntity Get(TPrimaryKey id);
+
+        Task<TEntity> GetAsync(TPrimaryKey id);
+
+
+        TEntity Single(Expression<Func<TEntity, bool>> predicate);
+
+
+        Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
+
+
+        TEntity FirstOrDefault(TPrimaryKey id);
+
+
+        Task<TEntity> FirstOrDefaultAsync(TPrimaryKey id);
+
+
         TEntity FirstOrDefault(Expression<Func<TEntity, bool>> predicate);
 
-        TEntity FirstOrDefaultWithWhere(Expression<Func<TEntity, bool>> predicate);
-        TEntity FirstOrDefault(TPrimaryKey id);
+
         Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<TEntity> FirstOrDefaultAsync(TPrimaryKey id);
-        TEntity Get(TPrimaryKey id);
-        IQueryable<TEntity> GetAll();
-        List<TEntity> GetAllIncluding(Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null);
 
-        IQueryable<TEntity> GetAllIncluding(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null);
-        TEntity GetIncludingByIdAsyn(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>,
-            IQueryable<TEntity>> includeMembers = null);
-        List<TEntity> GetAllList(Expression<Func<TEntity, bool>> predicate);
-        List<TEntity> GetAllList();
-        Task<List<TEntity>> GetAllListAsync(Expression<Func<TEntity, bool>> predicate);
-        Task<List<TEntity>> GetAllListAsync();
-        Task<TEntity> GetAsync(TPrimaryKey id);
-        TEntity Insert(TEntity entity);        
-        List<TEntity> InsertRange(List<TEntity> entities);
-
-        Task<List<TEntity>> InsertRangeAsyn(List<TEntity> entities);
-        Task<TEntity> InsertAsync(TEntity entity);
-        
         TEntity Load(TPrimaryKey id);
-        long LongCount(Expression<Func<TEntity, bool>> predicate);
-        long LongCount();
-        Task<long> LongCountAsync();
-        Task<long> LongCountAsync(Expression<Func<TEntity, bool>> predicate);
-        T Query<T>(Func<IQueryable<TEntity>, T> queryMethod);
-        TEntity Single(Expression<Func<TEntity, bool>> predicate);
-        Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
+
+        #endregion
+
+        #region Insert
+
+        TEntity Insert(TEntity entity);
+
+
+        Task<TEntity> InsertAsync(TEntity entity);
+
+
+        TPrimaryKey InsertAndGetId(TEntity entity);
+
+
+        Task<TPrimaryKey> InsertAndGetIdAsync(TEntity entity);
+
+
+        TEntity InsertOrUpdate(TEntity entity);
+
+        Task<TEntity> InsertOrUpdateAsync(TEntity entity);
+
+        TPrimaryKey InsertOrUpdateAndGetId(TEntity entity);
+
+
+        Task<TPrimaryKey> InsertOrUpdateAndGetIdAsync(TEntity entity);
+
+        #endregion
+
+        #region Update
+
         TEntity Update(TEntity entity);
-        
+
+
         Task<TEntity> UpdateAsync(TEntity entity);
-        EmployeeDbContext GetContext();
+
+
+        TEntity Update(TPrimaryKey id, Action<TEntity> updateAction);
+
+
+        Task<TEntity> UpdateAsync(TPrimaryKey id, Func<TEntity, Task> updateAction);
+
+        #endregion
+
+        #region Delete
+
+        void Delete(TEntity entity);
+
+
+        Task DeleteAsync(TEntity entity);
+
+
+        void Delete(TPrimaryKey id);
+
+
+        Task DeleteAsync(TPrimaryKey id);
+
+
+        void Delete(Expression<Func<TEntity, bool>> predicate);
+
+        Task DeleteAsync(Expression<Func<TEntity, bool>> predicate);
+
+        #endregion
+
+        #region Aggregates
+
+        int Count();
+
+
+        Task<int> CountAsync();
+
+        int Count(Expression<Func<TEntity, bool>> predicate);
+
+
+        Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate);
+
+
+        long LongCount();
+
+        Task<long> LongCountAsync();
+
+
+        long LongCount(Expression<Func<TEntity, bool>> predicate);
+
+
+        Task<long> LongCountAsync(Expression<Func<TEntity, bool>> predicate);
+
         void SaveChanges();
 
+        Task SaveChangesAsync();
+
+        #endregion
         string GetOpenConnection();
-        
+
     }
 }

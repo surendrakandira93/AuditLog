@@ -39,6 +39,8 @@ namespace AuditLog.Service
                 repo.Insert(department);
             }
 
+            repo.SaveChanges();
+
         }
 
         public List<DepartmentDto> GetAllAsync()
@@ -75,6 +77,7 @@ namespace AuditLog.Service
         {
             var department = repo.Get(id);
             repo.Delete(department);
+            repo.SaveChanges();
         }
     }
 }

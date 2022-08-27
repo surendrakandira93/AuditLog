@@ -33,7 +33,7 @@ namespace AuditLog.Data
         {
             ChangeTracker.DetectChanges();
             var auditEntries = new List<AuditLogEntry>();
-            foreach (var entry in ChangeTracker.Entries())
+            foreach (var entry in ChangeTracker.Entries().Where(p=>p.Properties.Any(c=>c.OriginalValue!=c.CurrentValue)).ToList())
             {
 
                 if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
@@ -72,7 +72,9 @@ namespace AuditLog.Data
                             }
                             break;
                     }
-                    auditEntry.Changes.Add(auditDto);
+
+                    if((auditDto.ValueBefore !=null && !auditDto.ValueBefore.Equals(auditDto.ValueAfter)) || (auditDto.ValueAfter != null && !auditDto.ValueAfter.Equals(auditDto.ValueBefore)))
+                        auditEntry.Changes.Add(auditDto);
                 }
             }
             foreach (var auditEntry in auditEntries)

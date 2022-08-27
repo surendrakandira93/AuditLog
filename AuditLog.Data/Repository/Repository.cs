@@ -1,21 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using AuditLog.Data.Entities;
 
 namespace AuditLog.Data
 {
-    public class Repository<TEntity, TPrimaryKey> : IRepository<TEntity, TPrimaryKey> where TEntity : class
+    public class Repository<TEntity, TPrimaryKey> : IRepository<TEntity, TPrimaryKey> where TEntity : class, IEntity<TPrimaryKey>
     {
-        internal EmployeeDbContext Context;
-        internal DbSet<TEntity> DbSet;
+        private readonly EmployeeDbContext Context;
+        private readonly DbSet<TEntity> DbSet;
         private readonly IConfiguration configuration;
-
         public Repository(EmployeeDbContext context, IConfiguration configuration)
         {
             Context = context;
@@ -23,187 +25,39 @@ namespace AuditLog.Data
             this.configuration = configuration;
         }
 
-        public TEntity Insert(TEntity entity)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("entity");
-            }
-            DbSet.Add(entity);
-            Context.SaveChanges();
-            return entity;
-        }
-
-        public async Task<TEntity> InsertAsync(TEntity entity)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("entity");
-            }
-            DbSet.Add(entity);
-            await Context.SaveChangesAsync();
-
-            return entity;
-        }
+        //public DbSet<TEntity> DbSet => Context.Set<TEntity>();
 
 
-        public List<TEntity> InsertRange(List<TEntity> entities)
-        {
-
-            this.DbSet.AddRange(entities);
-            this.Context.SaveChanges();
-            return entities;
-
-        }
-
-
-        public async Task<List<TEntity>> InsertRangeAsyn(List<TEntity> entities)
-        {
-
-            this.DbSet.AddRange(entities);
-            await this.Context.SaveChangesAsync();
-            return entities;
-
-        }
-
-
-        public TEntity Update(TEntity entity)
-        {
-            DbSet.Attach(entity);
-            Context.Entry(entity).State = EntityState.Modified;
-            Context.SaveChanges();
-            return entity;
-        }
-        public async Task<TEntity> UpdateAsync(TEntity entity)
-        {
-            DbSet.Attach(entity);
-            Context.Entry(entity).State = EntityState.Modified;
-            await Context.SaveChangesAsync();
-            return entity;
-
-        }
-
-
-        public void Delete(TEntity entity)
-        {
-            DbSet.Attach(entity);
-            DbSet.Remove(entity);
-            Context.SaveChanges();
-        }
-        public void DeleteRange(List<TEntity> entities)
-        {
-            foreach (var entity in entities)
-            {
-                DbSet.Attach(entity);
-                DbSet.Remove(entity);
-            }
-
-            Context.SaveChanges();
-        }
-
-        public async Task DeleteAsync(TEntity entity)
-        {
-            DbSet.Attach(entity);
-            DbSet.Remove(entity);
-            await Context.SaveChangesAsync();
-        }
-        public void Delete(TPrimaryKey id)
-        {
-            var entity = DbSet.Find(id);
-            DbSet.Remove(entity);
-            Context.SaveChanges();
-        }
-        public async Task DeleteAsync(TPrimaryKey id)
-        {
-            var entity = DbSet.Find(id);
-            DbSet.Remove(entity);
-            await Context.SaveChangesAsync();
-        }
-
-        public void Delete(Expression<Func<TEntity, bool>> predicate)
-        {
-            var entities = GetAllList(predicate);
-
-            foreach (var entity in entities)
-            {
-                Delete(entity);
-            }
-        }
-
-        public async Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            var entities = await GetAllListAsync(predicate);
-
-            foreach (var entity in entities)
-            {
-                await DeleteAsync(entity);
-            }
-        }
-
-
-        public EmployeeDbContext GetContext()
-        {
-            return Context;
-        }
-
-        public void SaveChanges()
-        {
-            Context.SaveChanges();
-        }
-        public string GetOpenConnection()
-        {
-            return configuration["ConnectionStrings:DefaultConnection"];
-        }      
-
-
-        public IQueryable<TEntity> GetAll(Expression<Func<TEntity, bool>> filter)
-        {
-            IQueryable<TEntity> query = DbSet.Where(filter);
-            return query;
-        }
         public IQueryable<TEntity> GetAll()
         {
-            IQueryable<TEntity> query = DbSet;
-            return query;
-        }
-
-        public List<TEntity> GetAllList(Expression<Func<TEntity, bool>> filter)
-        {
-            return DbSet.Where(filter).ToList();
+            return DbSet;
         }
 
         public List<TEntity> GetAllList()
         {
-            return DbSet.ToList();
+            return GetAll().ToList();
         }
-
-        public TEntity Get(TPrimaryKey id)
+        public Task<IQueryable<TEntity>> GetAllAsync()
         {
-            return DbSet.Find(id);
+            return Task.FromResult(DbSet.AsQueryable());
         }
 
-        public async Task<TEntity> GetAsync(TPrimaryKey id)
+        public IQueryable<TEntity> GetAllIncluding(params Expression<Func<TEntity, object>>[] propertySelectors)
         {
-            return await DbSet.FindAsync(id);
+            if (propertySelectors == null)
+            {
+                return GetAll();
+            }
+
+            var query = GetAll();
+
+            foreach (var propertySelector in propertySelectors)
+            {
+                query = query.Include(propertySelector);
+            }
+
+            return query;
         }
-
-
-
-
-        public List<TEntity> GetAllIncluding(Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null)
-        {
-            IQueryable<TEntity> queryable = this.GetAll();
-            IQueryable<TEntity> result = includeMembers(queryable);
-            return result.ToList();
-        }
-
-        public IQueryable<TEntity> GetAllIncluding(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null)
-        {
-            IQueryable<TEntity> queryable = this.GetAll().Where(match);
-            IQueryable<TEntity> result = includeMembers(queryable);
-            return result;
-        }
-
 
         public TEntity GetIncludingByIdAsyn(Expression<Func<TEntity, bool>> match, Func<IQueryable<TEntity>, IQueryable<TEntity>> includeMembers = null)
         {
@@ -220,53 +74,224 @@ namespace AuditLog.Data
             return result.SingleOrDefault();
         }
 
-        public Task<List<TEntity>> GetAllListAsync()
+        public async Task<List<TEntity>> GetAllListAsync()
         {
-            return GetAll().ToListAsync();
+            var query = await GetAllAsync();
+            return await query.ToListAsync();
         }
 
-        public Task<List<TEntity>> GetAllListAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<List<TEntity>> GetAllListAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return GetAll().Where(predicate).ToListAsync();
+            var query = await GetAllAsync();
+            return await query.Where(predicate).ToListAsync();
         }
 
-        public Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate)
+        public List<TEntity> GetAllList(Expression<Func<TEntity, bool>> predicate)
         {
-            return DbSet.Where(predicate).SingleAsync();
+            return GetAll().Where(predicate).ToList();
         }
+
+        public T Query<T>(Func<IQueryable<TEntity>, T> queryMethod)
+        {
+            return queryMethod(GetAll());
+        }
+        public TEntity Get(TPrimaryKey id)
+        {
+            var entity = FirstOrDefault(id);
+            return entity;
+        }
+
+        public async Task<TEntity> GetAsync(TPrimaryKey id)
+        {
+            var entity = await FirstOrDefaultAsync(id);
+
+            return entity;
+        }
+
         public TEntity Single(Expression<Func<TEntity, bool>> predicate)
         {
-            return DbSet.Where(predicate).Single();
+            return GetAll().Single(predicate);
         }
-
-        public TEntity FirstOrDefault(TPrimaryKey id)
+        public async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return DbSet.Where(CreateEqualityExpressionForId(id)).FirstOrDefault(CreateEqualityExpressionForId(id));
+            var query = await GetAllAsync();
+            return await query.SingleAsync(predicate);
         }
-
-        public Task<TEntity> FirstOrDefaultAsync(TPrimaryKey id)
-        {
-            return DbSet.Where(CreateEqualityExpressionForId(id)).FirstOrDefaultAsync();
-        }
-
         public TEntity FirstOrDefault(Expression<Func<TEntity, bool>> predicate)
         {
-            return DbSet.Where(predicate).FirstOrDefault();
+            return GetAll().FirstOrDefault(predicate);
         }
-
-        public TEntity FirstOrDefaultWithWhere(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity> FirstOrDefaultAsync(TPrimaryKey id)
         {
-            return DbSet.Where(predicate).FirstOrDefault();
+            var query = await GetAllAsync();
+            return await query.FirstOrDefaultAsync(CreateEqualityExpressionForId(id));
         }
 
         public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await GetAll().FirstOrDefaultAsync(predicate);
+            var query = await GetAllAsync();
+            return await query.FirstOrDefaultAsync(predicate);
+        }
+
+        public TEntity FirstOrDefault(TPrimaryKey id)
+        {
+            return GetAll().FirstOrDefault(CreateEqualityExpressionForId(id));
         }
 
         public TEntity Load(TPrimaryKey id)
         {
             return Get(id);
+        }
+        public TEntity Insert(TEntity entity)
+        {
+            DbSet.Add(entity);
+            return entity;
+        }
+
+        public Task<TEntity> InsertAsync(TEntity entity)
+        {
+            DbSet.Add(entity);
+            return Task.FromResult(entity);
+        }
+
+        public TPrimaryKey InsertAndGetId(TEntity entity)
+        {
+            entity = Insert(entity);
+
+            if (entity.IsTransient())
+            {
+                Context.SaveChanges();
+            }
+
+            return entity.Id;
+        }
+
+        public async Task<TPrimaryKey> InsertAndGetIdAsync(TEntity entity)
+        {
+            entity = await InsertAsync(entity);
+
+            if (entity.IsTransient())
+            {
+                await Context.SaveChangesAsync();
+            }
+
+            return entity.Id;
+        }
+
+        public TPrimaryKey InsertOrUpdateAndGetId(TEntity entity)
+        {
+            entity = InsertOrUpdate(entity);
+
+            if (entity.IsTransient())
+            {
+                Context.SaveChanges();
+            }
+
+            return entity.Id;
+        }
+        public TEntity InsertOrUpdate(TEntity entity)
+        {
+            return entity.IsTransient()
+                ? Insert(entity)
+                : Update(entity);
+        }
+
+        public async Task<TEntity> InsertOrUpdateAsync(TEntity entity)
+        {
+            return entity.IsTransient()
+                ? await InsertAsync(entity)
+                : await UpdateAsync(entity);
+        }
+
+        public async Task<TPrimaryKey> InsertOrUpdateAndGetIdAsync(TEntity entity)
+        {
+            entity = await InsertOrUpdateAsync(entity);
+
+            if (entity.IsTransient())
+            {
+                await Context.SaveChangesAsync();
+            }
+
+            return entity.Id;
+        }
+
+        public TEntity Update(TEntity entity)
+        {
+            AttachIfNot(entity);
+            Context.Entry(entity).State = EntityState.Modified;
+            return entity;
+        }
+
+        public Task<TEntity> UpdateAsync(TEntity entity)
+        {
+            AttachIfNot(entity);
+            Context.Entry(entity).State = EntityState.Modified;
+            return Task.FromResult(entity);
+        }
+
+        public TEntity Update(TPrimaryKey id, Action<TEntity> updateAction)
+        {
+            var entity = Get(id);
+            updateAction(entity);
+            return entity;
+        }
+
+        public async Task<TEntity> UpdateAsync(TPrimaryKey id, Func<TEntity, Task> updateAction)
+        {
+            var entity = await GetAsync(id);
+            await updateAction(entity);
+            return entity;
+        }
+
+
+        public void Delete(TEntity entity)
+        {
+            AttachIfNot(entity);
+            DbSet.Remove(entity);
+        }
+
+        public Task DeleteAsync(TEntity entity)
+        {
+            Delete(entity);
+            return Task.CompletedTask;
+        }
+
+        public void Delete(TPrimaryKey id)
+        {
+            var entity = DbSet.Local.FirstOrDefault(ent => EqualityComparer<TPrimaryKey>.Default.Equals(ent.Id, id));
+            if (entity == null)
+            {
+                entity = FirstOrDefault(id);
+                if (entity == null)
+                {
+                    return;
+                }
+            }
+
+            Delete(entity);
+        }
+
+        public Task DeleteAsync(TPrimaryKey id)
+        {
+            Delete(id);
+            return Task.CompletedTask;
+        }
+        public void Delete(Expression<Func<TEntity, bool>> predicate)
+        {
+            foreach (var entity in GetAllList(predicate))
+            {
+                Delete(entity);
+            }
+        }
+
+        public async Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var entities = await GetAllListAsync(predicate);
+
+            foreach (var entity in entities)
+            {
+                await DeleteAsync(entity);
+            }
         }
 
         public int Count()
@@ -279,40 +304,98 @@ namespace AuditLog.Data
             return GetAll().Count(predicate);
         }
 
-
-        public Task<int> CountAsync()
+        public async Task<int> CountAsync()
         {
-            return GetAll().CountAsync();
+            var query = await GetAllAsync();
+            return await query.CountAsync();
         }
 
-        public Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return GetAll().CountAsync(predicate);
-        }
-
-        public Task<long> LongCountAsync()
-        {
-            return GetAll().LongCountAsync();
-        }
-
-        public Task<long> LongCountAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            return GetAll().LongCountAsync(predicate);
+            var query = await GetAllAsync();
+            return await query.Where(predicate).CountAsync();
         }
 
         public long LongCount()
         {
             return GetAll().LongCount();
         }
-
         public long LongCount(Expression<Func<TEntity, bool>> predicate)
         {
             return GetAll().LongCount(predicate);
         }
 
-        public virtual T Query<T>(Func<IQueryable<TEntity>, T> queryMethod)
+        public async Task<long> LongCountAsync()
         {
-            return queryMethod(GetAll());
+            var query = await GetAllAsync();
+            return await query.LongCountAsync();
+        }
+
+        public async Task<long> LongCountAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var query = await GetAllAsync();
+            return await query.Where(predicate).LongCountAsync();
+        }
+
+        protected virtual void AttachIfNot(TEntity entity)
+        {
+            if (!DbSet.Local.Contains(entity))
+            {
+                DbSet.Attach(entity);
+            }
+        }
+
+        public void SaveChanges()
+        {
+            Context.SaveChanges();
+        }
+        public async Task SaveChangesAsync()
+        {
+            await Context.SaveChangesAsync();
+        }
+
+        public DbContext GetDbContext()
+        {
+            return Context;
+        }
+
+        public string GetOpenConnection()
+        {
+            return Context.Database.GetDbConnection().ConnectionString;
+        }
+
+        public Task EnsureCollectionLoadedAsync<TProperty>(TEntity entity, Expression<Func<TEntity, IEnumerable<TProperty>>> collectionExpression,
+            CancellationToken cancellationToken) where TProperty : class
+        {
+            var expression = collectionExpression.Body as MemberExpression;
+
+
+            return Context.Entry(entity)
+                .Collection(expression.Member.Name)
+                .LoadAsync(cancellationToken);
+        }
+
+        public void EnsureCollectionLoaded<TProperty>(TEntity entity, Expression<Func<TEntity, IEnumerable<TProperty>>> collectionExpression,
+            CancellationToken cancellationToken) where TProperty : class
+        {
+            var expression = collectionExpression.Body as MemberExpression;
+
+
+            Context.Entry(entity)
+                .Collection(expression.Member.Name)
+                .Load();
+        }
+
+        public Task EnsurePropertyLoadedAsync<TProperty>(TEntity entity, Expression<Func<TEntity, TProperty>> propertyExpression,
+            CancellationToken cancellationToken) where TProperty : class
+        {
+            return Context.Entry(entity).Reference(propertyExpression).LoadAsync(cancellationToken);
+        }
+
+        public void EnsurePropertyLoaded<TProperty>(TEntity entity, Expression<Func<TEntity, TProperty>> propertyExpression,
+            CancellationToken cancellationToken) where TProperty : class
+        {
+            Context.Entry(entity).Reference(propertyExpression).Load();
         }
 
         protected virtual Expression<Func<TEntity, bool>> CreateEqualityExpressionForId(TPrimaryKey id)
@@ -329,21 +412,6 @@ namespace AuditLog.Data
             var lambdaBody = Expression.Equal(leftExpression, rightExpression);
 
             return Expression.Lambda<Func<TEntity, bool>>(lambdaBody, lambdaParam);
-        }
-
-        private EntityState ConvertState(EntityState state)
-        {
-            switch (state)
-            {
-                case EntityState.Added:
-                    return EntityState.Added;
-                case EntityState.Deleted:
-                    return EntityState.Deleted;
-                case EntityState.Modified:
-                    return EntityState.Modified;
-                default:
-                    return EntityState.Unchanged;
-            }
         }
 
     }

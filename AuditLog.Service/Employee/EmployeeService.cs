@@ -43,13 +43,14 @@ namespace AuditLog.Service
                 employee.CreatedDate = DateTime.Now;
                 repo.Insert(employee);
             }
+            repo.SaveChanges();
 
         }
 
         public List<EmployeeDto> GetAllAsync()
         {
 
-            return repo.GetAllIncluding(x => x.Include(m => m.Department)).Select(x => new EmployeeDto()
+            return repo.GetAllIncluding(x=>x.Department).Select(x => new EmployeeDto()
             {
                 Code = x.Code,
                 DateOfBirth = x.DateOfBirth,
@@ -86,6 +87,7 @@ namespace AuditLog.Service
         {
             var employee = repo.Get(id);
             repo.Delete(employee);
+            repo.SaveChanges();
         }
     }
 }

@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using AuditLog.Data.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuditLog.Data
 {
     [Table("Department")]
-    public class Department
+    public class Department: Entity
     {        
         
-        public virtual int Id { get; set; }
         public virtual string Name { get; set; }
         public virtual string Code { get; set; }
         public virtual string Description { get; set; }
