@@ -1,4 +1,5 @@
-﻿using AuditLog.Data;
+﻿using AuditLog.Core;
+using AuditLog.Data;
 using AuditLog.Dto;
 using Microsoft.EntityFrameworkCore;
 using System;

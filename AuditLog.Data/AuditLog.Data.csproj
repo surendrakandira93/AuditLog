@@ -6,6 +6,17 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="Repository\**" />
+	  <EmbeddedResource Remove="Repository\**" />
+	  <None Remove="Repository\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Include="Repository\IRepository.cs" />
+	  <Compile Include="Repository\Repository.cs" />
+	</ItemGroup>
+
 
 	<ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.8" />
@@ -13,5 +24,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\AuditLog.Core\AuditLog.Core.csproj" />
+	</ItemGroup>
 
 </Project>
