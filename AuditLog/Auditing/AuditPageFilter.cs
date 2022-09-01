@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using AuditLog.Dto;
+using AuditLog.Core;
 
 namespace AuditLog.Auditing
 {

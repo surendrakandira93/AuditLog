@@ -1,4 +1,4 @@
-﻿namespace AuditLog.Dto
+﻿namespace AuditLog.Core
 {
     [Serializable]
     public class ValidationErrorInfo

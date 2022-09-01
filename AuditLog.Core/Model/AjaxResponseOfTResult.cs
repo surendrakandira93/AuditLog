@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuditLog.Dto
+namespace AuditLog.Core
 {
     [Serializable]
     public class AjaxResponse<TResult> : AjaxResponseBase

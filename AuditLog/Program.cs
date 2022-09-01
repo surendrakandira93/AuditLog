@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using AuditLog.Data.Auditing;
 using Microsoft.AspNetCore.Mvc.Filters;
+using AuditLog.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<AuditActionFilter>();
     options.Filters.Add<AuditPageFilter>();
+    options.Filters.Add<ExceptionFilter>();
+    options.Filters.Add<AbpExceptionPageFilter>();
 });
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
@@ -41,7 +44,8 @@ builder.Services.AddTransient<IAuditSerializer, JsonNetAuditSerializer>();
 builder.Services.AddTransient<IAuditingHelper, AuditingHelper>();
 builder.Services.AddTransient<IAuditInfoProvider, DefaultAuditInfoProvider>();
 builder.Services.AddTransient<IAuditingStore, AuditingStore>();
-//builder.Services.AddTransient<IAsyncPageFilter, AuditActionFilter>();
+builder.Services.AddSingleton<IErrorInfoBuilder, ErrorInfoBuilder>();
+builder.Services.AddSingleton<IExceptionToErrorInfoConverter, DefaultErrorInfoConverter>();
 #endregion
 
 
