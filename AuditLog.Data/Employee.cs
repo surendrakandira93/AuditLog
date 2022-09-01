@@ -1,4 +1,4 @@
-﻿using AuditLog.Data.Auditing;
+﻿using AuditLog.Core.Auditing;
 using AuditLog.Data.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 

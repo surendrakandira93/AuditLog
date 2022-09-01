@@ -1,7 +1,6 @@
-﻿using AuditLog.Data.Auditing;
-using Microsoft.AspNetCore.Http.Extensions;
-using System.Net.Mail;
+﻿using Microsoft.AspNetCore.Http.Extensions;
 using System.Net;
+using AuditLog.Core.Auditing;
 
 namespace AuditLog.Auditing
 {

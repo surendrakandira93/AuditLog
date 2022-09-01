@@ -1,23 +1,6 @@
-﻿
-using AuditLog.Core;
-using AuditLog.Core.EntityHistory;
-using AuditLog.Core.Extensions;
-using AuditLog.Core.Reflection;
-using AuditLog.Data.Auditing;
-using AuditLog.Data.Entities;
-using AuditLog.Data.EntityHistory;
-using AuditLog.Data.EntityHistory.Extensions;
-using JetBrains.Annotations;
+﻿using AuditLog.Data.EntityHistory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Collections.Generic;
-
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AuditLog.Data
 {
@@ -25,13 +8,13 @@ namespace AuditLog.Data
     {
         public virtual DbSet<Department> Department { get; set; }
         public virtual DbSet<Employee> Employee { get; set; }
+
+        public virtual DbSet<Data.Auditing.AuditLog> AuditLogs { get; set; }
         public virtual DbSet<EntityChange> EntityChanges { get; set; }
         public virtual DbSet<EntityChangeSet> EntityChangeSets { get; set; }
         public virtual DbSet<EntityPropertyChange> EntityPropertyChanges { get; set; }
 
-        public IEntityHistoryHelper EntityHistoryHelper { get; set; }
-
-        IClientInfoProvider ClientInfoProvider;
+        public IEntityHistoryHelper EntityHistoryHelper { get; set; }        
         public EmployeeDbContext(DbContextOptions<EmployeeDbContext> options, IEntityHistoryHelper entityHistoryHelper)
            : base(options)
         {

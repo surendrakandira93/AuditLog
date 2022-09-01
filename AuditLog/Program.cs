@@ -1,31 +1,55 @@
 using AuditLog.Auditing;
-using AuditLog.Core;
-using AuditLog.Data.Auditing;
 using AuditLog.Core.EntityHistory;
 using AuditLog.Data;
 using AuditLog.Service;
 using Microsoft.EntityFrameworkCore;
 using AuditLog.Data.EntityHistory;
+using AuditLog.Core.Auditing;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using AuditLog.Data.Auditing;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<AuditActionFilter>();
+    options.Filters.Add<AuditPageFilter>();
+});
+
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
-
-builder.Services.AddSingleton<IClientInfoProvider, HttpContextClientInfoProvider>();
-builder.Services.AddScoped<IEntityHistoryStore, EntityHistoryStore>();
-builder.Services.AddScoped<IEntityHistoryHelper, EntityHistoryHelper>();
-
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<IEmployeeService, EmployeeService>();
 builder.Services.AddTransient<IDepartmentService, DepartmentService>();
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
 builder.Services.AddTransient<IEntityChangeService, EntityChangeService>();
 
-builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
+#region EntityHistore
+builder.Services.AddSingleton<IClientInfoProvider, HttpContextClientInfoProvider>();
+builder.Services.AddScoped<IEntityHistoryStore, EntityHistoryStore>();
+builder.Services.AddScoped<IEntityHistoryHelper, EntityHistoryHelper>();
+#endregion
+
+#region Auditing
+builder.Services.AddTransient<IAuditSerializer, JsonNetAuditSerializer>();
+builder.Services.AddTransient<IAuditingHelper, AuditingHelper>();
+builder.Services.AddTransient<IAuditInfoProvider, DefaultAuditInfoProvider>();
+builder.Services.AddTransient<IAuditingStore, AuditingStore>();
+//builder.Services.AddTransient<IAsyncPageFilter, AuditActionFilter>();
+#endregion
+
+
+//Configure MVC
+//builder.Services.Configure<MvcOptions>(mvcOptions => { 
+//    mvcOptions.Filters.AddService(typeof(AuditActionFilter));
+//    mvcOptions.Filters.AddService(typeof(AuditPageFilter));
+//});
 
 var app = builder.Build();
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuditLog.Controllers
 {
+    
     public class DepartmentController : Controller
     {
         private readonly IDepartmentService service;

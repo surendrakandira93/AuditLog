@@ -1,5 +1,5 @@
 ﻿
-using AuditLog.Data.Reflection;
+using AuditLog.Core.Reflection;
 using System.Reflection;
 
 namespace AuditLog.Data.Entities

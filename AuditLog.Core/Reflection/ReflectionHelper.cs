@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace AuditLog.Data.Reflection
+namespace AuditLog.Core.Reflection
 {
-    internal static class ReflectionHelper
+    public static class ReflectionHelper
     {
         
         public static bool IsAssignableToGenericType(Type givenType, Type genericType)
@@ -114,8 +114,8 @@ namespace AuditLog.Data.Reflection
             return defaultValue;
         }
 
-        
-        internal static object GetPropertyByPath(object obj, Type objectType, string propertyPath)
+
+        public static object GetPropertyByPath(object obj, Type objectType, string propertyPath)
         {
             var property = obj;
             var currentType = objectType;
@@ -135,8 +135,8 @@ namespace AuditLog.Data.Reflection
             return property;
         }
 
-        
-        internal static object GetValueByPath(object obj, Type objectType, string propertyPath)
+
+        public static object GetValueByPath(object obj, Type objectType, string propertyPath)
         {
             var value = obj;
             var currentType = objectType;
@@ -157,8 +157,8 @@ namespace AuditLog.Data.Reflection
             return value;
         }
 
-        
-        internal static void SetValueByPath(object obj, Type objectType, string propertyPath, object value)
+
+        public static void SetValueByPath(object obj, Type objectType, string propertyPath, object value)
         {
             var currentType = objectType;
             PropertyInfo property;
@@ -189,7 +189,7 @@ namespace AuditLog.Data.Reflection
             property.SetValue(obj, value);
         }
 
-        internal static bool IsPropertyGetterSetterMethod(MethodInfo method, Type type)
+        public static bool IsPropertyGetterSetterMethod(MethodInfo method, Type type)
         {
             if (!method.IsSpecialName)
             {
@@ -204,7 +204,7 @@ namespace AuditLog.Data.Reflection
             return type.GetProperty(method.Name.Substring(4), BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic) != null;
         }
 
-        internal static async Task<object> InvokeAsync(MethodInfo method, object obj, params object[] parameters)
+        public static async Task<object> InvokeAsync(MethodInfo method, object obj, params object[] parameters)
         {
             var task = (Task)method.Invoke(obj, parameters);
             await task;
