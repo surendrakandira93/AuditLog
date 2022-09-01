@@ -22,11 +22,8 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<IEmployeeService, EmployeeService>();
 builder.Services.AddTransient<IDepartmentService, DepartmentService>();
 builder.Services.AddTransient<IAuditLogService, AuditLogService>();
+builder.Services.AddTransient<IEntityChangeService, EntityChangeService>();
 
-
-//var serviceProvider = builder.Services.BuildServiceProvider();
-//var entityHistoryHelper = (EntityHistoryHelper)serviceProvider.GetService(typeof(EntityHistoryHelper));
-// Add services to the container.
 builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 

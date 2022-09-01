@@ -1,0 +1,91 @@
+﻿@model IEnumerable<EntityChangeSetDto>
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Audit table</h1>
+
+
+<table class="table">
+    <thead>
+        <tr>
+           
+            <th>
+                @Html.DisplayNameFor(model => model.BrowserInfo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ClientIpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreationTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Reason)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EntityChanges)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            
+            <td>
+                @Html.DisplayFor(modelItem => item.BrowserInfo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ClientIpAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreationTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Reason)
+            </td>
+            <td>
+                    <table class="table">
+                        <thead>
+                            <tr>
+
+                                <th>
+                                    Action Type
+                                </th>
+                                <th>
+                                    Entity Name
+                                </th>
+                                <th>
+                                    Property
+                                </th>                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enti in item.EntityChanges)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @Html.DisplayFor(modelItem => enti.ChangeType)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => enti.EntityTypeFullName)
+                                    </td>
+                                    <td>
+                                        @(JsonConvert.SerializeObject(enti.PropertyChanges))
+                                    </td>
+                                  
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+            </td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> 
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

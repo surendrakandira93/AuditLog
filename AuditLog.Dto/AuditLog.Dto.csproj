@@ -10,4 +10,8 @@
     <Folder Include="EntityHistory\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AuditLog.Core\AuditLog.Core.csproj" />
+  </ItemGroup>
+
 </Project>
