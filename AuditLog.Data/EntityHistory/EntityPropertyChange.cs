@@ -26,25 +26,25 @@ namespace AuditLog.Data.EntityHistory
 
        
         [StringLength(MaxValueLength)]
-        public virtual string NewValue { get; set; }
+        public virtual string? NewValue { get; set; }
 
       
         [StringLength(MaxValueLength)]
-        public virtual string OriginalValue { get; set; }
+        public virtual string? OriginalValue { get; set; }
 
       
         [StringLength(MaxPropertyNameLength)]
-        public virtual string PropertyName { get; set; }
+        public virtual string? PropertyName { get; set; }
 
        
         [StringLength(MaxPropertyTypeFullNameLength)]
-        public virtual string PropertyTypeFullName { get; set; }       
+        public virtual string? PropertyTypeFullName { get; set; }       
 
       
-        public virtual string NewValueHash { get; set; }
+        public virtual string? NewValueHash { get; set; }
 
      
-        public virtual string OriginalValueHash { get; set; }
+        public virtual string? OriginalValueHash { get; set; }
 
       
         public virtual void SetNewValue(string newValue)

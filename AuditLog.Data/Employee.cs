@@ -1,9 +1,11 @@
-﻿using AuditLog.Data.Entities;
+﻿using AuditLog.Data.Auditing;
+using AuditLog.Data.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuditLog.Data
 {
     [Table("Employee")]
+    [DisableAuditingAttribute]
     public class Employee: Entity
     {
         public virtual int DepartmentId { get; set; }

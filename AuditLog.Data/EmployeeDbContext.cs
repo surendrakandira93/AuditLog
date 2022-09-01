@@ -33,76 +33,30 @@ namespace AuditLog.Data
         public IEntityHistoryHelper EntityHistoryHelper { get; set; }
 
         IClientInfoProvider ClientInfoProvider;
-        public EmployeeDbContext(DbContextOptions<EmployeeDbContext> options, IClientInfoProvider clientInfoProvider)
+        public EmployeeDbContext(DbContextOptions<EmployeeDbContext> options, IEntityHistoryHelper entityHistoryHelper)
            : base(options)
         {
-            ClientInfoProvider = clientInfoProvider;
+            EntityHistoryHelper = entityHistoryHelper;
         }
 
-        //public override int SaveChanges()
-        //{
-        //    OnBeforeSaveChanges();
-        //    var result = base.SaveChanges();
-        //    return result;
-        //}
-        //public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        //{
-        //    OnBeforeSaveChanges();
-        //    var result = await base.SaveChangesAsync(cancellationToken);
-        //    return result;
-        //}
+
 
         public override int SaveChanges()
         {
-            var entityEntries = ChangeTracker.Entries().ToList();
-            //EntityChangeSet changeSet = EntityHistoryHelper?.CreateEntityChangeSet(ChangeTracker.Entries().ToList());
-
-            var changeSet = new EntityChangeSet
-            {
-                Reason = ClientInfoProvider.Reason.TruncateWithPostfix(EntityChangeSet.MaxReasonLength),
-
-                // Fill "who did this change"
-                BrowserInfo = ClientInfoProvider.BrowserInfo.TruncateWithPostfix(EntityChangeSet.MaxBrowserInfoLength),
-                ClientIpAddress =
-                   ClientInfoProvider.ClientIpAddress.TruncateWithPostfix(EntityChangeSet.MaxClientIpAddressLength),
-                ClientName = "Kandira-1",
-                ExtensionData="test-1",
-                CreationTime=DateTime.Now
-                //ImpersonatorUserId = AbpSession.ImpersonatorUserId,
-                // UserId = AbpSession.UserId
-            };
-
-
-            foreach (var entityEntry in entityEntries)
-            {              
-
-                var entityChange = CreateEntityChange(entityEntry);
-                if (entityChange == null)
-                {
-                    continue;
-                }
-
-                var propertyChanges = GetPropertyChanges(entityEntry, false);
-                if (propertyChanges.Count == 0)
-                {
-                    continue;
-                }
-                
-                entityChange.ChangeTime = DateTime.Now;
-                entityChange.PropertyChanges = propertyChanges.Where(w=>w.OriginalValueHash!=w.NewValueHash).ToList();
-                changeSet.EntityChanges.Add(entityChange);
-            }
+            EntityChangeSet changeSet = EntityHistoryHelper?.CreateEntityChangeSet(ChangeTracker.Entries().ToList());
 
             int result = base.SaveChanges();
-            IEntityHistoryHelper entityHistoryHelper = EntityHistoryHelper;
-            //if (entityHistoryHelper != null)
-            //{
-            //    entityHistoryHelper.Save(changeSet);
-            //    return result;
-            //}
+            if (changeSet.EntityChanges.Any())
+            {
+                changeSet = EntityHistoryHelper.UpdateEntityChangeSet(changeSet);
+                if (changeSet.EntityChanges.Any())
+                {
+                    this.EntityChangeSets.Add(changeSet);
+                    base.SaveChanges();
+                }                
+            }
 
-            this.EntityChangeSets.Add(changeSet);
-            base.SaveChanges();
+
             return result;
         }
 
@@ -110,9 +64,14 @@ namespace AuditLog.Data
         {
             EntityChangeSet changeSet = EntityHistoryHelper?.CreateEntityChangeSet(ChangeTracker.Entries().ToList());
             int result = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            if (EntityHistoryHelper != null)
+            if (changeSet.EntityChanges.Any())
             {
-                await EntityHistoryHelper.SaveAsync(changeSet).ConfigureAwait(continueOnCapturedContext: false);
+                changeSet = EntityHistoryHelper.UpdateEntityChangeSet(changeSet);
+                if (changeSet.EntityChanges.Any())
+                {
+                   await this.EntityChangeSets.AddAsync(changeSet);
+                  await base.SaveChangesAsync();
+                }
             }
 
             return result;
@@ -192,7 +151,7 @@ namespace AuditLog.Data
 
                 if (ShouldSavePropertyHistory(propertyEntry, !auditedPropertiesOnly))
                 {
-                    
+
                     propertyChanges.Add(
                         CreateEntityPropertyChange(
                             propertyEntry.GetOriginalValue(),
@@ -234,7 +193,7 @@ namespace AuditLog.Data
                 foreach (var foreignKey in additionalForeignKeys)
                 {
                     foreach (var property in foreignKey.Properties)
-                    {                      
+                    {
 
                         var propertyEntry = entityEntry.Property(property.Name);
 
@@ -322,7 +281,7 @@ namespace AuditLog.Data
         {
             return EntityHelper.IsEntity(entityType) && entityType.IsPublic;
         }
-      
+
 
         //private void OnBeforeSaveChanges()
         //{

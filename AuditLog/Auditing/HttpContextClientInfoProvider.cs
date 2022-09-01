@@ -1,5 +1,7 @@
 ﻿using AuditLog.Data.Auditing;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Net.Mail;
+using System.Net;
 
 namespace AuditLog.Auditing
 {
@@ -16,8 +18,7 @@ namespace AuditLog.Auditing
         public ILogger Logger { get; set; }
 
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-       
+               
         public HttpContextClientInfoProvider(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -53,7 +54,18 @@ namespace AuditLog.Auditing
 
         protected virtual string GetComputerName()
         {
-            return null;
+            try
+            {
+                return Dns.GetHostEntry(GetClientIpAddress()).HostName;
+            }
+            catch
+            {
+                return null;
+            }
+
+
         }
+
+        
     }
 }

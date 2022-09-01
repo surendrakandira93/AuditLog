@@ -26,26 +26,26 @@ namespace AuditLog.Data.EntityHistory
         public const int MaxReasonLength = 256;
 
         [StringLength(MaxBrowserInfoLength)]
-        public virtual string BrowserInfo { get; set; }
+        public virtual string? BrowserInfo { get; set; }
 
        
         [StringLength(MaxClientIpAddressLength)]
-        public virtual string ClientIpAddress { get; set; }
+        public virtual string? ClientIpAddress { get; set; }
 
        
-        public virtual string ClientName { get; set; }
+        public virtual string? ClientName { get; set; }
 
        
         public virtual DateTime CreationTime { get; set; }
 
        
-        public virtual string ExtensionData { get; set; }
+        public virtual string? ExtensionData { get; set; }
 
 
         public virtual long? ImpersonatorUserId { get; set; }
 
         [StringLength(MaxReasonLength)]
-        public virtual string Reason { get; set; }
+        public virtual string? Reason { get; set; }
 
        
         public virtual long? UserId { get; set; }

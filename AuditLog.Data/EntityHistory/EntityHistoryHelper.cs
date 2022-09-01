@@ -11,6 +11,8 @@ using AuditLog.Core.Reflection;
 using Microsoft.EntityFrameworkCore;
 using AuditLog.Data.EntityHistory;
 using AuditLog.Data.EntityHistory.Extensions;
+using Newtonsoft.Json;
+using AuditLog.Data;
 
 namespace AuditLog.Core.EntityHistory
 {
@@ -525,12 +527,10 @@ namespace AuditLog.Core.EntityHistory
 
     public class EntityHistoryHelper : IEntityHistoryHelper
     {
-        private readonly IEntityHistoryStore EntityHistoryStore;
         private readonly IClientInfoProvider ClientInfoProvider;
-        
-        public EntityHistoryHelper(IEntityHistoryStore _entityHistoryStore, IClientInfoProvider _clientInfoProvider)
-        {
-            this.EntityHistoryStore = _entityHistoryStore;
+
+        public EntityHistoryHelper(IClientInfoProvider _clientInfoProvider)
+        {            
             ClientInfoProvider = _clientInfoProvider;
         }
 
@@ -539,14 +539,12 @@ namespace AuditLog.Core.EntityHistory
             var changeSet = new EntityChangeSet
             {
                 Reason = ClientInfoProvider.Reason.TruncateWithPostfix(EntityChangeSet.MaxReasonLength),
-
-                // Fill "who did this change"
                 BrowserInfo = ClientInfoProvider.BrowserInfo.TruncateWithPostfix(EntityChangeSet.MaxBrowserInfoLength),
-                ClientIpAddress =
-                    ClientInfoProvider.ClientIpAddress.TruncateWithPostfix(EntityChangeSet.MaxClientIpAddressLength),
+                ClientIpAddress = ClientInfoProvider.ClientIpAddress.TruncateWithPostfix(EntityChangeSet.MaxClientIpAddressLength),
                 ClientName = ClientInfoProvider.ComputerName.TruncateWithPostfix(EntityChangeSet.MaxClientNameLength),
                 //ImpersonatorUserId = AbpSession.ImpersonatorUserId,
-                // UserId = AbpSession.UserId
+                // UserId = AbpSession.UserId,
+                CreationTime = DateTime.Now
             };
 
 
@@ -578,31 +576,12 @@ namespace AuditLog.Core.EntityHistory
             return changeSet;
         }
 
-        public virtual async Task SaveAsync(EntityChangeSet changeSet)
+       
+        public virtual EntityChangeSet UpdateEntityChangeSet(EntityChangeSet changeSet)
         {
-
             UpdateChangeSet(changeSet);
+            return changeSet;
 
-            if (changeSet.EntityChanges.Count == 0)
-            {
-                return;
-            }
-
-                await EntityHistoryStore.SaveAsync(changeSet);
-            
-        }
-
-        public virtual void Save(EntityChangeSet changeSet)
-        {
-
-            UpdateChangeSet(changeSet);
-
-            if (changeSet.EntityChanges.Count == 0)
-            {
-                return;
-            }
-                EntityHistoryStore.Save(changeSet);
-             
         }
 
         protected virtual string GetEntityId(EntityEntry entry)
@@ -873,19 +852,18 @@ namespace AuditLog.Core.EntityHistory
 
         protected virtual bool? IsTypeOfAuditedEntity(Type entityType)
         {
-            //var entityTypeInfo = entityType.GetTypeInfo();
-            //if (entityTypeInfo.IsDefined(typeof(DisableAuditingAttribute), true))
-            //{
-            //    return false;
-            //}
+            var entityTypeInfo = entityType.GetTypeInfo();
+            if (entityTypeInfo.IsDefined(typeof(DisableAuditingAttribute), true))
+            {
+                return false;
+            }
 
-            //if (entityTypeInfo.IsDefined(typeof(AuditedAttribute), true))
-            //{
-            //    return true;
-            //}
+            if (entityTypeInfo.IsDefined(typeof(AuditedAttribute), true))
+            {
+                return true;
+            }
 
-            //return null;
-            return false;
+            return null;
         }
 
         protected virtual bool? IsTypeOfTrackedEntity(Type entityType)
@@ -906,38 +884,35 @@ namespace AuditLog.Core.EntityHistory
 
         protected virtual bool? IsAuditedPropertyInfo(Type entityType, PropertyInfo propertyInfo)
         {
-            //if (propertyInfo.IsDefined(typeof(DisableAuditingAttribute), true))
-            //{
-            //    return false;
-            //}
+            if (propertyInfo.IsDefined(typeof(DisableAuditingAttribute), true))
+            {
+                return false;
+            }
 
-            //if (propertyInfo.IsDefined(typeof(AuditedAttribute), true))
-            //{
-            //    return true;
-            //}
+            if (propertyInfo.IsDefined(typeof(AuditedAttribute), true))
+            {
+                return true;
+            }
 
-            //var isTrackedEntity = IsTypeOfTrackedEntity(entityType);
-            //var isAuditedEntity = IsTypeOfAuditedEntity(entityType);
+            var isTrackedEntity = IsTypeOfTrackedEntity(entityType);
+            var isAuditedEntity = IsTypeOfAuditedEntity(entityType);
 
-            //return (isTrackedEntity ?? false) || (isAuditedEntity ?? false);
-
-            return false;
+            return (isTrackedEntity ?? false) || (isAuditedEntity ?? false);
         }
 
         protected virtual bool? IsAuditedPropertyInfo(PropertyInfo propertyInfo)
         {
-            //if (propertyInfo.IsDefined(typeof(DisableAuditingAttribute), true))
-            //{
-            //    return false;
-            //}
+            if (propertyInfo.IsDefined(typeof(DisableAuditingAttribute), true))
+            {
+                return false;
+            }
 
-            //if (propertyInfo.IsDefined(typeof(AuditedAttribute), true))
-            //{
-            //    return true;
-            //}
+            if (propertyInfo.IsDefined(typeof(AuditedAttribute), true))
+            {
+                return true;
+            }
 
-            //return null;
-            return false;
+            return null;
         }
     }
 }

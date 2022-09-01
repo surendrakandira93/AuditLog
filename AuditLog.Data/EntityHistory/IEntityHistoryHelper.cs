@@ -6,8 +6,7 @@ namespace AuditLog.Data.EntityHistory
     {
         EntityChangeSet CreateEntityChangeSet(ICollection<EntityEntry> entityEntries);
 
-        Task SaveAsync(EntityChangeSet changeSet);
 
-        void Save(EntityChangeSet changeSet);
+        EntityChangeSet UpdateEntityChangeSet(EntityChangeSet changeSet);
     }
 }
