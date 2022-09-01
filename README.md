@@ -4,4 +4,6 @@ Entity changes save in db as  log in .Net core entity, store table changes with 
 
 ![image](https://user-images.githubusercontent.com/10044538/187850298-309000aa-1959-434c-a0f1-3cf59e3c4962.png)
 
+Auditing log
 
+![image](https://user-images.githubusercontent.com/10044538/187905642-5daa2cfe-8de1-4f15-827b-b21423974599.png)
