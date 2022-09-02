@@ -3,6 +3,9 @@ using AuditLog.Data.Auditing;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuditLog.Auditing
 {
@@ -41,19 +44,33 @@ namespace AuditLog.Auditing
                 result = await next();
                 if (result.Exception != null && !result.ExceptionHandled)
                 {
-                    auditInfo.Exception = result.Exception;
+                    auditInfo.Exception = result.Exception;                   
+
+                    if (result.Exception is DbUpdateException)
+                    {                       
+                       
+                        try
+                        {
+                            _auditingHelper.DetachAllEntities();
+                        }
+                        catch 
+                        {
+
+                            
+                        }
+                        
+                    }
                 }
-            }
+            }      
             catch (Exception ex)
-            {
-                auditInfo.Exception = ex;
+            {               
                 throw;
             }
             finally
             {
                 stopwatch.Stop();
                 auditInfo.ExecutionDuration = Convert.ToInt32(stopwatch.Elapsed.TotalMilliseconds);
-
+                
                 if (result != null)
                 {
                     switch (result.Result)

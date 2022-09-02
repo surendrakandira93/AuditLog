@@ -1,5 +1,6 @@
 ﻿using AuditLog.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 
 namespace AuditLog.Data
@@ -146,6 +147,8 @@ namespace AuditLog.Data
         Task SaveChangesAsync();
 
         #endregion
+
+        void DetachAllEntities();
         string GetOpenConnection();
 
     }

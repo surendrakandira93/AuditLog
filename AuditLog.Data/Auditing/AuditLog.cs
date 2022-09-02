@@ -1,6 +1,8 @@
-﻿using AuditLog.Core.Auditing;
+﻿using AuditLog.Core;
+using AuditLog.Core.Auditing;
 using AuditLog.Core.Extensions;
 using AuditLog.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,6 +10,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ValidationException = AuditLog.Core.ValidationException;
 
 namespace AuditLog.Data.Auditing
 {
@@ -96,7 +99,7 @@ namespace AuditLog.Data.Auditing
                 ClientName = auditInfo.ClientName.TruncateWithPostfix(MaxClientNameLength),
                 BrowserInfo = auditInfo.BrowserInfo.TruncateWithPostfix(MaxBrowserInfoLength),
                 Exception = exceptionMessage.TruncateWithPostfix(MaxExceptionLength),
-                ExceptionMessage = auditInfo.Exception?.Message.TruncateWithPostfix(MaxExceptionMessageLength),                
+                ExceptionMessage = auditInfo.Exception?.GetBaseException().Message.TruncateWithPostfix(MaxExceptionMessageLength),                
                 CustomData = auditInfo.CustomData.TruncateWithPostfix(MaxCustomDataLength)
             };
         }
@@ -109,11 +112,6 @@ namespace AuditLog.Data.Auditing
             );
         }
 
-        /// <summary>
-        /// Make audit exceptions more explicit.
-        /// </summary>
-        /// <param name="exception"></param>
-        /// <returns></returns>
         public static string GetAbpClearException(Exception exception)
         {
             var clearMessage = "";
@@ -122,28 +120,31 @@ namespace AuditLog.Data.Auditing
                 case null:
                     return null;
 
-                case ValidationException abpValidationException:
-                    clearMessage = "There are 1 validation errors:";
-                   // foreach (var validationResult in abpValidationException.ValidationResult.MemberNames)
-                   // {
+                case DbUpdateException dbException:
+                    clearMessage = "There are " + dbException.Entries.Count + " validation errors:";
+                    foreach (var entity in dbException.Entries)
+                    {
+                        var validationContext = new ValidationContext(entity);
                         var memberNames = "";
-                      //  if (validationResult.MemberNames != null && validationResult.MemberNames.Any())
-                        //{
-                          //  memberNames = " (" + string.Join(", ", validationResult.MemberNames) + ")";
-                        //}
+                        if (validationContext != null && validationContext.DisplayName.Any())
+                        {
+                            memberNames = " (" + string.Join(", ", validationContext.DisplayName) + ")";
+                        }
 
-                        clearMessage += "\r\n" + abpValidationException.ValidationResult.ErrorMessage + abpValidationException.ValidationResult.MemberNames;
-                    //}
+                        clearMessage += "\r\n" + validationContext.Items.Values + memberNames;
+                    }
 
                     break;
 
-                case Exception userFriendlyException:
-                    clearMessage =
-                        $"UserFriendlyException.Code:{userFriendlyException.Message}\r\nUserFriendlyException.Details:{userFriendlyException.StackTrace}";
+               
+
+                case Exception exception1:
+                    clearMessage = exception1.GetBaseException()?.Message;
                     break;
             }
 
             return exception + (clearMessage.IsNullOrWhiteSpace() ? "" : "\r\n\r\n" + clearMessage);
         }
+        
     }
 }

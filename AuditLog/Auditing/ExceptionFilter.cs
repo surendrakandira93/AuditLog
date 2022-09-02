@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Logging;
 using System.Net;
 using Microsoft.AspNetCore.Http.Extensions;
 using AuditLog.Core;
+using AuditLog.Data.Auditing;
 
 namespace AuditLog.Auditing
 {
@@ -13,18 +14,19 @@ namespace AuditLog.Auditing
     {      
 
         private readonly IErrorInfoBuilder _errorInfoBuilder;
-
-        public ExceptionFilter(IErrorInfoBuilder errorInfoBuilder)
+        private readonly IAuditingHelper _auditingHelper;
+        public ExceptionFilter(IErrorInfoBuilder errorInfoBuilder, IAuditingHelper auditingHelper)
         {
-            _errorInfoBuilder = errorInfoBuilder;            
+            _errorInfoBuilder = errorInfoBuilder;
+            _auditingHelper = auditingHelper;
         }
 
         public void OnException(ExceptionContext context)
         {
-            if (!context.ActionDescriptor.IsControllerAction())
-            {
-                return;
-            }
+            //if (!context.ActionDescriptor.IsControllerAction())
+            //{
+            //    return;
+            //}
 
             var wrapResultAttribute = ReflectionHelper.GetSingleAttributeOfMemberOrDeclaringTypeOrDefault(context.ActionDescriptor.GetMethodInfo(), new WrapResultAttribute());           
 
@@ -33,10 +35,10 @@ namespace AuditLog.Auditing
 
         protected virtual void HandleAndWrapException(ExceptionContext context, WrapResultAttribute wrapResultAttribute)
         {
-            if (!ActionResultHelper.IsObjectResult(context.ActionDescriptor.GetMethodInfo().ReturnType))
-            {
-                return;
-            }
+            //if (!ActionResultHelper.IsObjectResult(context.ActionDescriptor.GetMethodInfo().ReturnType))
+            //{
+            //    return;
+            //}
 
             //var displayUrl = context.HttpContext.Request.GetDisplayUrl();
             //if (_abpWebCommonModuleConfiguration.WrapResultFilters.HasFilterForWrapOnError(displayUrl,
@@ -65,6 +67,7 @@ namespace AuditLog.Auditing
 
         private void HandleError(ExceptionContext context)
         {
+            
             context.Result = new ObjectResult(
                 new AjaxResponse(
                     _errorInfoBuilder.BuildForException(context.Exception),

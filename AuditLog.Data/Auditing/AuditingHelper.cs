@@ -1,5 +1,6 @@
 ﻿using AuditLog.Core.Auditing;
 using AuditLog.Core.Extensions;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,6 +95,11 @@ namespace AuditLog.Data.Auditing
             return auditInfo;
         }
 
+        public void DetachAllEntities()
+        {
+            _auditingStore.DetachAllEntities();
+
+        }
         public void Save(AuditInfo auditInfo)
         {
             _auditingStore.Save(auditInfo);

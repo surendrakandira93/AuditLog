@@ -10,6 +10,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AuditLog.Data.Entities;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace AuditLog.Data
 {
@@ -345,6 +346,18 @@ namespace AuditLog.Data
             }
         }
 
+
+        public void DetachAllEntities()
+        {
+            var changedEntriesCopy = Context.ChangeTracker.Entries()
+                    .Where(e => e.State == EntityState.Added ||
+                                e.State == EntityState.Modified ||
+                                e.State == EntityState.Deleted)
+                    .ToList();
+
+            foreach (var entry in changedEntriesCopy)
+                entry.State = EntityState.Detached;
+        }
         public void SaveChanges()
         {
             Context.SaveChanges();
