@@ -1,16 +1,9 @@
-﻿using AuditLog.Core;
-using AuditLog.Core.Auditing;
+﻿using AuditLog.Core.Auditing;
 using AuditLog.Core.Extensions;
 using AuditLog.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ValidationException = AuditLog.Core.ValidationException;
 
 namespace AuditLog.Data.Auditing
 {

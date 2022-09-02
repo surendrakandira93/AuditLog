@@ -20,9 +20,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<AuditActionFilter>();
-    options.Filters.Add<AuditPageFilter>();
-    options.Filters.Add<ExceptionFilter>();
-    options.Filters.Add<AbpExceptionPageFilter>();
+    options.Filters.Add<AuditPageFilter>();    
 });
 
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
@@ -45,16 +43,7 @@ builder.Services.AddTransient<IAuditSerializer, JsonNetAuditSerializer>();
 builder.Services.AddTransient<IAuditingHelper, AuditingHelper>();
 builder.Services.AddTransient<IAuditInfoProvider, DefaultAuditInfoProvider>();
 builder.Services.AddTransient<IAuditingStore, AuditingStore>();
-builder.Services.AddSingleton<IErrorInfoBuilder, ErrorInfoBuilder>();
-builder.Services.AddSingleton<IExceptionToErrorInfoConverter, DefaultErrorInfoConverter>();
 #endregion
-
-
-//Configure MVC
-//builder.Services.Configure<MvcOptions>(mvcOptions => { 
-//    mvcOptions.Filters.AddService(typeof(AuditActionFilter));
-//    mvcOptions.Filters.AddService(typeof(AuditPageFilter));
-//});
 
 var app = builder.Build();
 
