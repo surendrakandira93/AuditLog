@@ -10,48 +10,79 @@
 <table class="table">
     <thead>
         <tr>
-           
+
             <th>
-                @Html.DisplayNameFor(model => model.ActionType)
+                @Html.DisplayNameFor(model => model.ServiceName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TableName)
+                @Html.DisplayNameFor(model => model.MethodName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DateTime)
+                @Html.DisplayNameFor(model => model.Parameters)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Changes)
+                @Html.DisplayNameFor(model => model.ExecutionTime)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.KeyId)
+                @Html.DisplayNameFor(model => model.ExecutionDuration)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ClientIpAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ClientName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BrowserInfo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExceptionMessage)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Exception)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            
-            <td>
-                @Html.DisplayFor(modelItem => item.ActionType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TableName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Changes)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.KeyId)
-            </td>
-            <td>
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> 
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.ServiceName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MethodName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Parameters)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ExecutionTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ExecutionDuration)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ClientIpAddress)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ClientName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BrowserInfo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ExceptionMessage)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Exception)
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
